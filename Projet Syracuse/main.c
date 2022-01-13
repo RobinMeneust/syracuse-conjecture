@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 long stringToLong(char * text)
 {
@@ -16,14 +17,14 @@ long stringToLong(char * text)
     return result;
 }
 
-
 int main(int argc, char** argv)
 {
+    FILE* fileOutput = NULL;
+
     long max_altitude=0;
     long flight_duration=0;
     long altitude_duration=0;
     long altitude_duration_temp=0;
-    long un_before=0;
     long un=0;
     long u0=0;
 
@@ -37,13 +38,24 @@ int main(int argc, char** argv)
         return -1;
     }
 
+
+    fileOutput = fopen(argv[2], "w");
+
+    if(!fileOutput){
+        fprintf(stderr, "ERROR: the file can't be opened\n");
+        exit(EXIT_FAILURE);
+    }
+
+
     u0=stringToLong(argv[1]);
     un=u0;
 
     printf("u[0] = %ld\n", u0);
+    fprintf(fileOutput,"n Un\n");
+    fprintf(fileOutput, "0 %ld\n", u0);
+
     while(un!=1) // or: stop when there is a cycle ?
     {
-        un_before=un;
         if(un%2 == 0)
             un = un/2;
         else
@@ -61,8 +73,17 @@ int main(int argc, char** argv)
         }
 
         flight_duration++;
+        
         printf("u[%ld] = %ld\n", flight_duration, un);
+        fprintf(fileOutput, "%ld %ld\n", flight_duration, un);
     }
     printf("max_alt %ld  |   flight_dur %ld   |   altitude_dur %ld", max_altitude, flight_duration, altitude_duration);
+    fprintf(fileOutput, "altimax=%ld\ndureevol=%ld\ndureealtitude=%ld", max_altitude, flight_duration, altitude_duration);
+
+    
+    if(fclose(fileOutput)==EOF){
+        fprintf(stderr, "ERROR: the file can't be closed\n");
+        exit(EXIT_FAILURE);
+    }
     return 0;
 }
