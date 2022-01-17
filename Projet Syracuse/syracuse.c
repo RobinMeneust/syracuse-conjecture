@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 
 long stringToLong(char * text)
 {
@@ -30,13 +29,13 @@ int main(int argc, char** argv)
     long u0=0;
 
     if(argc!=3){
-        fprintf(stderr, "ERROR: bad parameters");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "ERROR: bad parameters\n");
+        return 1;
     }
     else if(strlen(argv[2])>FILENAME_MAX) //argv[1]>0 ?
     {
-        fprintf(stderr, "ERROR: the given file name is too long"); // check if it has invalid characters too ?
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "ERROR: the given file name is too long\n");
+        return 1;
     }
     
 
@@ -45,14 +44,14 @@ int main(int argc, char** argv)
     if(u0 <= 0)
     {
         fprintf(stderr, "ERROR: U0='%s' is not correct\n", argv[1]);
-        exit(EXIT_FAILURE);
+        return 1;
     }
 
     fileOutput = fopen(argv[2], "w");
 
     if(!fileOutput){
-        fprintf(stderr, "ERROR: the file can't be opened\n");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "ERROR: the file can't be opened, it may be because of invalid characters\n");
+        return 1;
     }
 
 
@@ -89,7 +88,7 @@ int main(int argc, char** argv)
     
     if(fclose(fileOutput)==EOF){
         fprintf(stderr, "ERROR: the file can't be closed\n");
-        exit(EXIT_FAILURE);
+        return 1;
     }
     return 0;
 }
