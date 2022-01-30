@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
-long stringToLong(char * text)
+unsigned long stringToUnsignedLong(char * text)
 {
     int i=0;
-    long number=0;
-    long result=0;
+    unsigned long number=0;
+    unsigned long result=0;
 
     while(text[i]!='\0'){ //we verify that the parameter is a number
         number=text[i]-'0'; //by doing the difference between the parameter in ascii and 0 in ascii
@@ -21,12 +21,12 @@ int main(int argc, char** argv)
 {
     FILE* fileOutput = NULL;
 
-    long max_altitude=0;    //the maximum value of Un for each n
-    long flight_duration=0;     //the number n at the end of each flight
-    long altitude_duration=0;       //the maximum number of successives values up to each Un 
-    long altitude_duration_temp=0;      //?
-    long un=0;      //un is the actual altitude of the flight
-    long u0=0;      //u0 is the number to begin the flight
+    unsigned long max_altitude=0;    //the maximum value of Un for each n
+    unsigned long flight_duration=0;     //the number n at the end of each flight
+    unsigned long altitude_duration=0;       //the maximum number of successives values up to each Un 
+    unsigned long altitude_duration_temp=0;      //?
+    unsigned long un=0;      //un is the actual altitude of the flight
+    unsigned long u0=0;      //u0 is the number to begin the flight
 
     if(argc!=3){ //if there ain't exactly 3 parameters, we quit the program
         fprintf(stderr, "ERROR: bad parameters\n");
@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     }
     
 
-    u0=stringToLong(argv[1]); //we transform the first parameter which is in text string into a number
+    u0=stringToUnsignedLong(argv[1]); //we transform the first parameter which is in text string into a number
 
     if(u0 <= 0) //Syracuse works with strictly postive numbers
     {
@@ -59,8 +59,9 @@ int main(int argc, char** argv)
 
     //time to write in new files and prepare the columns n and Un
     fprintf(fileOutput,"n Un\n");
-    fprintf(fileOutput, "0 %ld\n", u0);
-
+    fprintf(fileOutput, "0 %lu\n", u0);
+    max_altitude=u0;
+    
     while(un!=1) // or: stop when there is a cycle ?
     {
         if(un%2 == 0) //if the numer is an even number
@@ -81,10 +82,10 @@ int main(int argc, char** argv)
 
         flight_duration++;
         
-        fprintf(fileOutput, "%ld %ld\n", flight_duration, un);
+        fprintf(fileOutput, "%lu %lu\n", flight_duration, un);
     }
     //we write the results of records at the end of the file
-    fprintf(fileOutput, "altimax=%ld\ndureevol=%ld\ndureealtitude=%ld", max_altitude, flight_duration, altitude_duration);
+    fprintf(fileOutput, "altimax=%lu\ndureevol=%lu\ndureealtitude=%lu", max_altitude, flight_duration, altitude_duration);
 
     
     if(fclose(fileOutput)==EOF){ //time to close the file
