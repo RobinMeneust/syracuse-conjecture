@@ -47,12 +47,9 @@ done
 #    fi
 #fi
 
-#altimax_data=`mktemp`
-#dureevol_data=`mktemp`
-#dureealtitude_data=`mktemp`
-altimax_data="altimax"
-dureevol_data="dureevol_data"
-dureealtitude_data="dureealtitude_data"
+altimax_data=`mktemp`
+dureevol_data=`mktemp`
+dureealtitude_data=`mktemp`
 
 max_altimax=5 # temp value to test the current version, it will be the real max value when this project will be completed
 max_dureevol=5
