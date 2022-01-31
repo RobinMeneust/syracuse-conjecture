@@ -1,3 +1,9 @@
+/**
+ * \file main.c
+ * \brief It will check the user input and write in the given file the sequence of integers generated with the Syracuse conjecture starting from the provided number (the first parameter)
+ * \date 2022
+ */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -16,6 +22,14 @@ unsigned long stringToUnsignedLong(char * text)
     }
     return result;
 }
+
+/**
+ * \fn int main(int argc, char** argv)
+ * \brief Main function of this Syracuse project
+ * \param argc An integer that contains the number of arguments given
+ * \param argv An array containing the arguments given (it's an array of arrays of characters)
+ * \return 0 if the function runs and exits correctly
+ */
 
 int main(int argc, char** argv)
 {
