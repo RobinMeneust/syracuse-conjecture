@@ -108,7 +108,7 @@ fi
 
 
 gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_flights; set title 'Ensemble des Un=f(n) pour U0 dans [${1}-${2}]'; set ylabel 'Un'; set xlabel 'n'; set output 'graphs/syracuse_$1_$2_ALL.jpg'; plot $gnuplot_instructions_flights"
-gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_altimax; set title 'altimax = f(U0) pour U0 dans [${1}-${2}]'; set ylabel 'altimax'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_altimaxBIS.jpg'; plot '$altimax_data' u 1:2 title '' $line_style lc rgb 'blue'"
+gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_altimax; set title 'altimax = f(U0) pour U0 dans [${1}-${2}]'; set ylabel 'altimax'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_altimax.jpg'; plot '$altimax_data' u 1:2 title '' $line_style lc rgb 'blue'"
 gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_dureevol; set title 'dureevol= f(U0) pour U0 dans [${1}-${2}]'; set ylabel 'dureevol'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_dureevol.jpg'; plot '$dureevol_data' u 1:2 title '' $line_style lc rgb 'blue'"
 gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_dureealtitude; set title 'dureealtitude = f(U0) pour U0 dans [${1}-${2}]'; set ylabel 'dureealtitude'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_dureealtitude.jpg'; plot '$dureealtitude_data' u 1:2 title '' $line_style lc rgb 'blue'"
 
