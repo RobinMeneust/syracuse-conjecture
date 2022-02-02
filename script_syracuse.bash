@@ -22,6 +22,19 @@ then
     exit 1
 fi
 
+
+if [ -e "synthese-$1-$2.txt" ]
+then
+    read -p "'synthese-$1-$2.txt' already exist do you want to delete it ? (y/n): " answer
+    if [ "$answer" = "y" ]
+    then
+        rm "synthese-$1-$2.txt"
+    else
+        echo -e "You have to delete 'synthese-$1-$2.txt' before running this script\n"
+        exit 1 
+    fi
+fi
+
 if ! [ -d "output_dir" ] #if "dir" isn't a directory yet, we create it
 then
     mkdir "output_dir"
@@ -40,30 +53,26 @@ done
 
 #gnuplot -e "reset; set terminal png; set output 'ex.png'; plot 'output_dir/f15.dat' u 1:2 with lines, 'output_dir/f20.dat' u 1:2 with lines"
 
-#altimax_data exist ???
-#if [ -e altimax_data ]
-#then
-#    read -p "'altimax_data' already exist do you want to delete it ? (y/n): " answer
-#    if [ "$answer" = "y" ]
-#    then
-#        rm altimax_data
-#    else
-#        echo -e "You have to delete 'altimax_data' before running this script\n"
-#        exit 1 
-#    fi
-#fi
+
 
 altimax_data=`mktemp`
 dureevol_data=`mktemp`
 dureealtitude_data=`mktemp`
 
-max_altimax=5 # temp value to test the current version, it will be the real max value when this project will be completed
-max_dureevol=5
+max_altimax=$(tail -n 3 output_dir/f${1}.dat | sed -n '1p' | cut -d'=' -f2) # temp value to test the current version, it will be the real max value when this project will be completed
+min_altimax=$max_altimax
+current_altimax=0
+average_altimax=0
 
-min_dureealtitude=$(tail -n 1 output_dir/f${u0}.dat | cut -d'=' -f2)
+max_dureevol=$(tail -n 2 output_dir/f${1}.dat | sed -n '1p' | cut -d'=' -f2)
+min_dureevol=$max_dureevol
+current_dureevol=0
+average_dureevol=0
+
+min_dureealtitude=$(tail -n 1 output_dir/f${1}.dat | cut -d'=' -f2)
 max_dureealtitude=$min_dureealtitude
 current_dureealtitude=0
-    
+average_dureealtitude=0
 
 gnuplot_instructions_flights=""
 
@@ -86,8 +95,29 @@ for u0 in `seq $1 $2`
 do
     file_name="f${u0}.dat"
     gnuplot_instructions_flights="${gnuplot_instructions_flights} 'output_dir/${file_name}' u 1:2 title '' $line_style_flights lc rgb 'blue', "
-    echo "$u0 $(tail -n 3 output_dir/${file_name} | sed -n '1p' | cut -d'=' -f2)" >> "$altimax_data"
-    echo "$u0 $(tail -n 2 output_dir/${file_name} | sed -n '1p' | cut -d'=' -f2)" >> "$dureevol_data"
+
+    current_altimax="$(tail -n 3 output_dir/${file_name} | sed -n '1p' | cut -d'=' -f2)"
+    echo "$u0 $current_altimax" >> "$altimax_data"
+    if [ $current_altimax -gt $max_altimax ]
+    then
+        max_altimax=$current_altimax
+    fi
+    if [ $current_altimax -lt $min_altimax ]
+    then
+        min_altimax=$current_altimax
+    fi
+
+    current_dureevol="$(tail -n 2 output_dir/${file_name} | sed -n '1p' | cut -d'=' -f2)"
+    echo "$u0 $current_dureevol" >> "$dureevol_data"
+    if [ $current_dureevol -gt $max_dureevol ]
+    then
+        max_dureevol=$current_dureevol
+    fi
+    if [ $current_dureevol -lt $min_dureevol ]
+    then
+        min_dureevol=$current_dureevol
+    fi
+
     current_dureealtitude="$(tail -n 1 output_dir/${file_name} | cut -d'=' -f2)"
     echo "$u0 $current_dureealtitude" >> "$dureealtitude_data"
     if [ $current_dureealtitude -gt $max_dureealtitude ]
@@ -98,7 +128,16 @@ do
     then
         min_dureealtitude=$current_dureealtitude
     fi
+
+    average_altimax=$(($average_altimax + $current_altimax))
+    average_dureevol=$(($average_dureevol + $current_dureevol))
+    average_dureealtitude=$(($average_dureealtitude + $current_dureealtitude))
+
 done
+
+average_altimax=$(($average_altimax / ($2 - $1 +1)))
+average_dureevol=$(($average_dureevol / ($2 - $1 +1)))
+average_dureealtitude=$(($average_dureealtitude / ($2 - $1 +1)))
 
 
 if [ $1 -eq $2 ]
@@ -120,8 +159,17 @@ gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_dureealtitude; set t
 
 #BONUS (stats)
 
+#synthese-$1-$2.txt
+echo "Average_dureevol : $average_dureevol" > "synthese-$1-$2.txt"
+echo "Average_dureealtitude : $average_dureealtitude" >> "synthese-$1-$2.txt"
+echo "Average_altimax : $average_altimax" >> "synthese-$1-$2.txt"
+
+echo "Max alti : $max_altimax   Max dureeVol : $max_dureevol   Max dureeAltitude : $max_dureealtitude " >> "synthese-$1-$2.txt"
+echo "Min alti : $min_altimax   Min dureeVol : $min_dureevol   Min dureeAltitude : $min_dureealtitude " >> "synthese-$1-$2.txt"
+
 rm -r "output_dir"
 
 rm "$altimax_data"
 rm "$dureevol_data"
 rm "$dureealtitude_data"
+
