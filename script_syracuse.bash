@@ -5,16 +5,13 @@ if [ $# -ne 2 -o -n "${1//[0-9]/}" -o -n "${2//[0-9]/}" -o "${1:0:1}" = "0" -o "
 then
     #Display help
     echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h\n\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION\n\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration.\n\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one\n\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX\n\tUMAX must be an unsigned long int (so it's lesser than 18,446,744,073,709,551,615)\n\n\t-h\n\t\tdisplay this help and exit.\n"
-
     exit 1
 elif [ $1 -gt $2 ] #We check if the first number is greater than the second. This line isn't in the first if expression because it was tested even when the previous expressions were true
 then
     #Display help
-    echo "MANUAL: ..."
+    echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h\n\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION\n\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration.\n\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one\n\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX\n\tUMAX must be an unsigned long int (so it's lesser than 18,446,744,073,709,551,615)\n\n\t-h\n\t\tdisplay this help and exit.\n"
     exit 1
 fi
-
-#date > "output_dir/logs.txt" #add the date at the beginning of the logs file
 
 if ! [ -x "syracuse" ]
 then
@@ -47,8 +44,12 @@ fi
 
 for u0 in `seq $1 $2` #in the directory, we create $2-$1 files for each number of Un between these two numbers
 do
-    file_name="f${u0}.dat"
-    ./syracuse "$u0" "output_dir/${file_name}" #2>>"output_dir/logs.txt"
+    ./syracuse "$u0" "output_dir/f${u0}.dat" #2>>"output_dir/logs.txt"
+    if [ $? -eq 1 ]
+    then 
+        echo -e "ERROR: the program syracuse couldn't be executed\n"
+        exit 1
+    fi
 done
 
 #gnuplot -e "reset; set terminal png; set output 'ex.png'; plot 'output_dir/f15.dat' u 1:2 with lines, 'output_dir/f20.dat' u 1:2 with lines"
@@ -160,12 +161,9 @@ gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_dureealtitude; set t
 #BONUS (stats)
 
 #synthese-$1-$2.txt
-echo "Average_dureevol : $average_dureevol" > "synthese-$1-$2.txt"
-echo "Average_dureealtitude : $average_dureealtitude" >> "synthese-$1-$2.txt"
-echo "Average_altimax : $average_altimax" >> "synthese-$1-$2.txt"
-
-echo "Max alti : $max_altimax   Max dureeVol : $max_dureevol   Max dureeAltitude : $max_dureealtitude " >> "synthese-$1-$2.txt"
-echo "Min alti : $min_altimax   Min dureeVol : $min_dureevol   Min dureeAltitude : $min_dureealtitude " >> "synthese-$1-$2.txt"
+echo -e "Altimax :\n\tMin : $min_altimax \n\tMax : $max_altimax \n\tAverage : $average_altimax\n" > "synthese-$1-$2.txt"
+echo -e "DureeVol :\n\tMin : $min_dureevol \n\tMax : $max_dureevol \n\tAverage : $average_dureevol\n" >> "synthese-$1-$2.txt"
+echo -e "DureeAltitude :\n\tMin : $min_dureealtitude \n\tMax : $max_dureealtitude\n\tAverage : $average_dureealtitude" >> "synthese-$1-$2.txt"
 
 rm -r "output_dir"
 
