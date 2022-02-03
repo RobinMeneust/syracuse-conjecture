@@ -1,6 +1,6 @@
 /**
  * \file main.c
- * \brief It will check the user input and write in the given file the sequence of integers generated with the Syracuse conjecture starting from the provided number (the first parameter)
+ * \brief It will check the user input and write in the given file (the second parameter) the sequence of integers generated with the Syracuse conjecture starting from the provided number (the first parameter)
  * \date 2022
  */
 
@@ -9,9 +9,9 @@
 
 /**
  * \fn unsigned long stringToUnsignedLong(char * text)
- * \brief Convert string into unsigned long (integer)  
- * \param text the string that we want to convert in unsigned long
- * \return the unsigned long converted from the text 
+ * \brief Convert a string into an unsigned long (integer). If there is a character that isn't a number then it returns an error
+ * \param text The string that we want to convert to an unsigned long
+ * \return The unsigned long converted from the text
  */
 
 unsigned long stringToUnsignedLong(char * text)
@@ -21,10 +21,11 @@ unsigned long stringToUnsignedLong(char * text)
     unsigned long result=0;
 
     while(text[i]!='\0'){ 
-        number=text[i]-'0'; //we check that the parameter is a number by doing the difference between the parameter in ascii and 0 in ascii
+        // We check that the parameter is a number by doing the difference between the parameter in ascii and 0 in ascii. If it's not a number we return -1
+        number=text[i]-'0'; 
         if(number<0 || number>9)
             return -1;
-        result=(result*10L) + number; //we transform the parameter in character(s) into a number
+        result=(result*10L) + number;
         i++;
     }
     return result;
@@ -40,76 +41,79 @@ unsigned long stringToUnsignedLong(char * text)
 
 int main(int argc, char** argv)
 {
-    FILE* fileOutput = NULL;
+    FILE* fileOutput = NULL;    // The output file whose name is given in parameters. It will contain data about the Syracuse sequence starting from the given u0
+    unsigned long max_altitude=0;    // The maximum value of Un
+    unsigned long index=0;     // The index n of each un. At the end it will be equal to the flight duration
+    unsigned long altitude_duration=0;       // The maximum number of successive values greater than u0
+    unsigned long altitude_duration_temp=0;      // The current number of successive values greater than u0
+    unsigned long un=0;      // The current altitude of the flight
+    unsigned long u0=0;      // The first value of the sequence
 
-    unsigned long max_altitude=0;    //the maximum value of Un
-    unsigned long flight_duration=0;     //the number n at the end of each flight
-    unsigned long altitude_duration=0;       //the maximum number of successive values up to each Un 
-    unsigned long altitude_duration_temp=0;      //?
-    unsigned long un=0;      //un is the actual altitude of the flight
-    unsigned long u0=0;      //u0 is the number to begin the flight
-
-    if(argc!=3){ //if there ain't exactly 3 parameters, we quit the program
-        fprintf(stderr, "ERROR: bad parameters\n");
+    // If there aren't exactly 3 parameters (including the name of this program), we return an error and we exit this program
+    
+    if(argc != 3){ 
+        fprintf(stderr, "ERROR: bad parameters. 2 parameters are expected\n");
         return 1;
     }
-    else if(strlen(argv[2])>FILENAME_MAX) //argv[1]>0 ? //or if the parameters' names are to long
+    // If the name of the output file provided by the second parameter is too long. If that's the case then an error is returned and we exit the program
+    if(strlen(argv[2]) > FILENAME_MAX) 
     {
         fprintf(stderr, "ERROR: the given file name is too long\n");
         return 1;
     }
-    
 
-    u0=stringToUnsignedLong(argv[1]); //we transform the first parameter which is in text string into a number
+    // We convert the first parameter into a number
+    u0=stringToUnsignedLong(argv[1]); 
 
-    if(u0 <= 0) //Syracuse works with strictly postive numbers
+    // We check if u0 is strictly positive since Syracuse's conjecture only works with it (except for some variants of this conjecture)
+    if(u0 <= 0) 
     {
         fprintf(stderr, "ERROR: U0='%s' is not correct\n", argv[1]);
         return 1;
     }
 
-    fileOutput = fopen(argv[2], "w"); //we do the same checking for the second parameter
+    fileOutput = fopen(argv[2], "w");
 
+    // If the file can't be opened it also return an error and we exit the program
     if(!fileOutput){
         fprintf(stderr, "ERROR: the file can't be opened, it may be because of invalid characters\n");
         return 1;
     }
+    
+    un = u0;
 
-
-    un=u0;
-
-    //time to write in new files and prepare the columns n and Un
+    // We add a header and u0 to the output file
     fprintf(fileOutput,"n Un\n");
     fprintf(fileOutput, "0 %lu\n", u0);
     max_altitude=u0;
     
-    while(un!=1) // or: stop when there is a cycle ?
+    while(un != 1)
     {
-        if(un%2 == 0) //if the numer is an even number
+        if(un%2 == 0)
             un = un/2;
         else
             un = (un*3) + 1;
 
-        if(max_altitude<un)
-            max_altitude=un;
+        if(max_altitude < un)
+            max_altitude = un;
 
-        if(un>u0)
+        if(un > u0)
             altitude_duration_temp++;
         else{
-            if(altitude_duration<altitude_duration_temp)
+            if(altitude_duration < altitude_duration_temp)
                 altitude_duration = altitude_duration_temp;
-            altitude_duration_temp=0;
+            altitude_duration_temp = 0;
         }
 
-        flight_duration++;
-        
-        fprintf(fileOutput, "%lu %lu\n", flight_duration, un);
+        index++;
+        fprintf(fileOutput, "%lu %lu\n", index, un);
     }
-    //we write the results of records at the end of the file
-    fprintf(fileOutput, "altimax=%lu\ndureevol=%lu\ndureealtitude=%lu", max_altitude, flight_duration, altitude_duration);
 
-    
-    if(fclose(fileOutput)==EOF){ //time to close the file
+    // We write at the end of the file the
+    fprintf(fileOutput, "altimax=%lu\ndureevol=%lu\ndureealtitude=%lu", max_altitude, index, altitude_duration);
+
+    // We close the file and check if it was done correctly
+    if(fclose(fileOutput) == EOF){
         fprintf(stderr, "ERROR: the file can't be closed\n");
         return 1;
     }
