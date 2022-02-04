@@ -1,15 +1,25 @@
 #!/bin/bash
 
 # We check if the two firsts parameters are integers and if the first one is greater or equal to the second one
-if [ $# -ne 2 -o -n "${1//[0-9]/}" -o -n "${2//[0-9]/}" -o "${1:0:1}" = "0" -o "${2:0:1}" = "0" ]
+if [ $# -ne 2 -o -n "${1//[0-9]/}" -o -n "${2//[0-9]/}" -o "${1:0:1}" = "0" -o "${2:0:1}" = "0" -o ${#1} -gt 17 -o ${#2} -gt 17 ]
 then
     # Display help
-    echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h\n\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION\n\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration.\n\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one\n\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX\n\tUMAX must be an long int (so it's lesser than 9,223,372,036,854,775,807)\n\n\t-h\n\t\tdisplay this help and exit.\n"
+    echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h"
+    echo -e "\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION"
+    echo -e "\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration."
+    echo -e "\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one"
+    echo -e "\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX"
+    echo -e "\tUMAX must be an long int (so it's lesser than 99,999,999,999,999,999)\n\n\t-h\n\t\tdisplay this help and exit.\n"
     exit 1
 elif [ $1 -gt $2 ] #We check if the first number is greater than the second. This line isn't in the first if expression because it was tested even when the previous expressions were true
 then
     # Display help
-    echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h\n\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION\n\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration.\n\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one\n\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX\n\tUMAX must be an unsigned long int (so it's lesser than 9,223,372,036,854,775,807)\n\n\t-h\n\t\tdisplay this help and exit.\n"
+    echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h"
+    echo -e "\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION"
+    echo -e "\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration."
+    echo -e "\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one"
+    echo -e "\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX"
+    echo -e "\tUMAX must be an long int (so it's lesser than 99,999,999,999,999,999)\n\n\t-h\n\t\tdisplay this help and exit.\n"
     exit 1
 fi
 
@@ -58,6 +68,7 @@ do
         echo -e "ERROR: the program 'syracuse' couldn't be executed\n"
         exit 1
     fi
+
 done
 
 # We initialize the needed variables
