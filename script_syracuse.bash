@@ -190,9 +190,11 @@ echo -e "Dureealtitude :\n\tMin : $min_altitude_duration \n\tMax : $max_altitude
 
 
 # We adjust the ranges if needed
-# Here we always adjust yrange but it's written in scientific notation when it's a large number
+# Here we always adjust yrange because the maximum value is not too large even when u0 is huge
 range_flight_duration="; set yrange [0:$(($max_flight_duration + 1))]"
 range_altitude_duration="; set yrange [0:$(($max_altitude_duration + 1))]"
+
+#if the maximum value of altimax is too big then we write it in scientific notation
 
 if [ ${#max_altimax} -gt 8 ]
 then
@@ -204,7 +206,7 @@ else
     range_flights="; set yrange [0:$log_max_altimax]"
 fi
 
-# If U0MIN is too high the range of the x axis may be too large so we adujst it just in case
+# If U0MIN is too high the range of the x axis may be too large so we adujst it just in case it goes wrong
 # And if there is only one point in the ranges (e.g [2:2]) we also need to readjust the ranges
 
 log_u0min=$(decimalLogarithmApprox $(($1 / 2)))
