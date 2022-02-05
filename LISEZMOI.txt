@@ -1,0 +1,51 @@
+/////////////////////
+SYRACUSE
+/////////////////////
+
+	Dans ce fichier, lorsqu'une commande est écrite entre "", tapez-la sans le "" (par exemple, "make" devient make).
+
+/////////////////////
+INSTALLATION
+
+	Ce programme nécessite Linux.
+
+/////////////////////
+COMPILATION
+
+	Tapez dans la console : "main.c -o syracuse"
+	Vous pouvez aussi lancer le script script_syracuse.bash (avec ou sans options), il vous demandera si vous voulez créer l'exécutable syracuse ou non
+
+/////////////////////
+EXECUTION
+	
+	Vous devez ajouter des droits d'exécution à ce script :
+	"chmod u+x syracuse.bash"
+
+	Dans le dossier contenant l'exécutable "syracuse", tapez la commande suivante avec les options :
+	"./script_syracuse.bash"
+
+	Tapez "./script_syracuse.bash -h" pour afficher l'aide ou lisez la section AIDE à la fin de ce LISEZMOI pour connaître toutes les options.
+
+/////////////////////
+DIVERS
+
+	Le nom de l'exécutable "syracuse" ne doit pas être modifié.
+
+/////////////////////
+AIDE :
+
+NOM
+	script_syracuse.bash
+
+SYNOPSIS
+	script_syracuse.bash -h
+	script_syracuse.bash UMIN MAX
+
+DESCRIPTION
+	Génère des graphiques au format jpeg correspondant à l'altitude maximale, la durée du vol et la durée en altitude.
+	Il génère également un résumé "synthese-min-max.txt" qui fournit les valeurs minimales, maximales et moyennes pour chacune de ces valeurs.
+	UMIN et UMAX sont des entiers strictement positifs et UMIN est inférieur à UMAX
+	UMAX doit être inférieur à 1 000 000 000 000 000.
+
+	-h
+		affiche cette aide et quitte le programme.

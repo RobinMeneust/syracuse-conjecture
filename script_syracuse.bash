@@ -1,63 +1,110 @@
 #!/bin/bash
 
-# We check if the two firsts parameters are integers and if the first one is greater or equal to the second one
-if [ $# -ne 2 -o -n "${1//[0-9]/}" -o -n "${2//[0-9]/}" -o "${1:0:1}" = "0" -o "${2:0:1}" = "0" -o ${#1} -gt 17 -o ${#2} -gt 17 ]
-then
-    # Display help
+# Function used to get the approximated value of the decimal logarithm of the given parameter in scientific notation (e.g 5e+8)
+decimalLogarithmApprox(){
+    echo "$((${1::1} + 1))e+$((${#1} - 1))"
+}
+
+
+displayHelp(){
     echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h"
     echo -e "\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION"
     echo -e "\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration."
     echo -e "\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one"
     echo -e "\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX"
-    echo -e "\tUMAX must be an long int (so it's lesser than 99,999,999,999,999,999)\n\n\t-h\n\t\tdisplay this help and exit.\n"
+    echo -e "\tUMAX must be lesser than 1,000,000,000,000,000\n\n\t-h\n\t\tdisplay this help and exit.\n"
+}
+
+# Check if a directory is available. If it's a file the nwe have to delete it before and if it doesn't exist we create it
+checkDirAvailability(){
+    if ! [ -d "$1" ] 
+    then
+        if [ -e "$1" ]
+        then
+            echo -e "ERROR: you have to delete the file '$1' before running this script\n"
+            exit 1
+        else
+            mkdir "$1"
+        fi
+    fi
+}
+
+# Check if a the given executable exist. If it doesn't then we ask if the user want to create it
+checkExecutableAvailability(){
+    if ! [ -e "$1" ]
+    then
+        read -p "The executable syracuse doesn't exist and is required. Do you want to create it ? (y/n)" answer
+        if [ "$answer" = "y" ]
+        then
+            gcc main.c -o syracuse
+            if [ $? -eq 0 ]
+            then
+                echo "syracuse was successfully created"
+            fi
+        else
+            echo -e "ERROR: 'syracuse' is required. Please read README.txt and follow the instructions in the installation part\n"
+            exit 1
+        fi
+    elif ! [ -x "syracuse" ]
+    then
+        echo -e "ERROR: 'syracuse' is not an executable. Please read README.txt and follow the instructions in the installation part\n"
+        exit 1
+    fi
+}
+
+# Get a value in the given file, return it save it in a file generated from the first parameter 'u0'
+# $1: u0     $2: line starting from the last three lines    $3: fileOutput
+getDataFromDatFiles(){
+    local current_value="$(tail -n 3 output_dir/f${1}.dat | sed -n "${2}p" | cut -d'=' -f2)"
+    echo "$1 $current_value" >> "$3"
+    echo $current_value
+}
+
+max(){
+    if [ $1 -gt $2 ]
+    then
+        echo $1
+    else
+        echo $2
+    fi
+}
+
+min(){
+    if [ $1 -lt $2 ]
+    then
+        echo $1
+    else
+        echo $2
+    fi
+}
+
+
+# We check if the executable compiled from main.c exists
+checkExecutableAvailability "syracuse"
+
+# We check if the two firsts parameters are integers, if the first one is greater or equal to the second one and if they are lesser than 1e16
+if [ $# -ne 2 -o -n "${1//[0-9]/}" -o -n "${2//[0-9]/}" -o "${1:0:1}" = "0" -o "${2:0:1}" = "0" -o ${#1} -gt 15 -o ${#2} -gt 15 ]
+then
+    # Display help
+    displayHelp
     exit 1
 elif [ $1 -gt $2 ] #We check if the first number is greater than the second. This line isn't in the first if expression because it was tested even when the previous expressions were true
 then
     # Display help
-    echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h"
-    echo -e "\tscript_syracuse.bash UMIN MAX\n\nDESCRIPTION"
-    echo -e "\tGenerates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration."
-    echo -e "\tIt also generates a resume named synthese-min-max.txt that provide minimum, maximum and average values for each one"
-    echo -e "\tUMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX"
-    echo -e "\tUMAX must be an long int (so it's lesser than 99,999,999,999,999,999)\n\n\t-h\n\t\tdisplay this help and exit.\n"
-    exit 1
-fi
-
-# We check if the executable compiled from main.c exists
-if ! [ -x "syracuse" ]
-then
-    echo -e "ERROR: 'syracuse' does not exist or is not an executable. Please read README.txt and follow the instructions in the installation part\n"
+    displayHelp
     exit 1
 fi
 
 # We check if the output files and folders already exist
-if [ -d "synthese-$1-$2.txt" ]
+if [ -d "summary/synthese-$1-$2.txt" ]
 then
-    echo -e "ERROR: you have to delete the folder 'synthese-$1-$2.txt 'before running this script\n"
+    echo -e "ERROR: you have to delete the folder 'summary/synthese-$1-$2.txt 'before running this script\n"
     exit 1
 fi
 
-if ! [ -d "output_dir" ] 
-then
-    if [ -e "output_dir" ]
-    then
-        echo -e "ERROR: you have to delete the file 'output_dir' before running this script\n"
-        exit 1
-    else
-        mkdir "output_dir"
-    fi
-fi
-
-if ! [ -d "graphs" ]
-then
-    if [ -e "graphs" ]
-    then
-        echo -e "ERROR: you have to delete the file 'graphs' before running this script\n"
-        exit 1
-    else
-        mkdir "graphs"
-    fi
-fi
+checkDirAvailability "output_dir"
+checkDirAvailability "graphs"
+checkDirAvailability "summary"
 
 # We run 'syracuse' for each U0 between $1 and $2. It creates a file for each of those U0
 for u0 in `seq $1 $2` 
@@ -74,23 +121,23 @@ done
 # We initialize the needed variables
 
 altimax_data=`mktemp`
-dureevol_data=`mktemp`
-dureealtitude_data=`mktemp`
+flight_duration_data=`mktemp`
+altitude_duration_data=`mktemp`
 
 max_altimax=$(tail -n 3 output_dir/f${1}.dat | sed -n '1p' | cut -d'=' -f2) # temp value to test the current version, it will be the real max value when this project will be completed
 min_altimax=$max_altimax
 current_altimax=0
 average_altimax=0
 
-max_dureevol=$(tail -n 2 output_dir/f${1}.dat | sed -n '1p' | cut -d'=' -f2)
-min_dureevol=$max_dureevol
-current_dureevol=0
-average_dureevol=0
+max_flight_duration=$(tail -n 2 output_dir/f${1}.dat | sed -n '1p' | cut -d'=' -f2)
+min_flight_duration=$max_flight_duration
+current_flight_duration=0
+average_flight_duration=0
 
-min_dureealtitude=$(tail -n 1 output_dir/f${1}.dat | cut -d'=' -f2)
-max_dureealtitude=$min_dureealtitude
-current_dureealtitude=0
-average_dureealtitude=0
+min_altitude_duration=$(tail -n 1 output_dir/f${1}.dat | cut -d'=' -f2)
+max_altitude_duration=$min_altitude_duration
+current_altitude_duration=0
+average_altitude_duration=0
 
 gnuplot_instructions_flights=""
 
@@ -112,81 +159,69 @@ fi
 # We get the data needed to create the graphs and the summary
 for u0 in `seq $1 $2`
 do
-    file_name="f${u0}.dat"
-    gnuplot_instructions_flights="${gnuplot_instructions_flights} 'output_dir/${file_name}' u 1:2 title '' $line_style_flights lc rgb 'blue', "
-
+    gnuplot_instructions_flights="${gnuplot_instructions_flights} 'output_dir/f${u0}.dat' u 1:2 title '' $line_style_flights lc rgb 'blue', "
     #ALTIMAX
-    current_altimax="$(tail -n 3 output_dir/${file_name} | sed -n '1p' | cut -d'=' -f2)"
-    echo "$u0 $current_altimax" >> "$altimax_data"
-    if [ $current_altimax -gt $max_altimax ]
-    then
-        max_altimax=$current_altimax
-    fi
-    if [ $current_altimax -lt $min_altimax ]
-    then
-        min_altimax=$current_altimax
-    fi
-
-    #DUREEVOL
-    current_dureevol="$(tail -n 2 output_dir/${file_name} | sed -n '1p' | cut -d'=' -f2)"
-    echo "$u0 $current_dureevol" >> "$dureevol_data"
-    if [ $current_dureevol -gt $max_dureevol ]
-    then
-        max_dureevol=$current_dureevol
-    fi
-    if [ $current_dureevol -lt $min_dureevol ]
-    then
-        min_dureevol=$current_dureevol
-    fi
-
-    #DUREEALTITUDE
-    current_dureealtitude="$(tail -n 1 output_dir/${file_name} | cut -d'=' -f2)"
-    echo "$u0 $current_dureealtitude" >> "$dureealtitude_data"
-    if [ $current_dureealtitude -gt $max_dureealtitude ]
-    then
-        max_dureealtitude=$current_dureealtitude
-    fi
-    if [ $current_dureealtitude -lt $min_dureealtitude ]
-    then
-        min_dureealtitude=$current_dureealtitude
-    fi
-
+    current_altimax=$(getDataFromDatFiles $u0 1 "$altimax_data")
+    min_altimax=$(min $current_altimax $min_altimax)
+    max_altimax=$(max $current_altimax $max_altimax)
     average_altimax=$(($average_altimax + $current_altimax))
-    average_dureevol=$(($average_dureevol + $current_dureevol))
-    average_dureealtitude=$(($average_dureealtitude + $current_dureealtitude))
 
+    #FLIGHT DURATION
+    current_flight_duration=$(getDataFromDatFiles $u0 2 "$flight_duration_data")
+    min_flight_duration=$(min $current_flight_duration $min_flight_duration)
+    max_flight_duration=$(max $current_flight_duration $max_flight_duration)
+    average_flight_duration=$(($average_flight_duration + $current_flight_duration))
+
+    #ALTITUDE DURATION
+    current_altitude_duration=$(getDataFromDatFiles $u0 3 "$altitude_duration_data")
+    min_altitude_duration=$(min $current_altitude_duration $min_altitude_duration)
+    max_altitude_duration=$(max $current_altitude_duration $max_altitude_duration)
+    average_altitude_duration=$(($average_altitude_duration + $current_altitude_duration))
 done
 
 average_altimax=$(($average_altimax / ($2 - $1 +1)))
-average_dureevol=$(($average_dureevol / ($2 - $1 +1)))
-average_dureealtitude=$(($average_dureealtitude / ($2 - $1 +1)))
+average_flight_duration=$(($average_flight_duration / ($2 - $1 +1)))
+average_altitude_duration=$(($average_altitude_duration / ($2 - $1 +1)))
+
+# summary/synthese-$1-$2.txt is created here
+echo -e "Altimax :\n\tMin : $min_altimax \n\tMax : $max_altimax \n\tMoyenne : $average_altimax\n" > "summary/synthese-$1-$2.txt"
+echo -e "Dureevol :\n\tMin : $min_flight_duration \n\tMax : $max_flight_duration \n\tMoyenne : $average_flight_duration\n" >> "summary/synthese-$1-$2.txt"
+echo -e "Dureealtitude :\n\tMin : $min_altitude_duration \n\tMax : $max_altitude_duration\n\tMoyenne : $average_altitude_duration" >> "summary/synthese-$1-$2.txt"
 
 # We adjust the range if needed
+
+if [ ${#max_altimax} -gt 8 ]
+then
+    log_max_altimax=$(decimalLogarithmApprox $max_altimax)
+
+    range_altimax="; set yrange [0:${log_max_altimax}]"
+    range_flight_duration="; set yrange [0:$(($max_flight_duration + 1))]"
+    range_altitude_duration="; set yrange [0:$(($max_altitude_duration + 1))]"
+    range_flights="; set yrange [0:$log_max_altimax]"
+fi
+
 if [ $1 -eq $2 ]
 then
+    log_u0min=$(decimalLogarithmApprox $(($1 / 2)))
+    log_u0max=$(decimalLogarithmApprox $((2 * $2)))
+
+    range_altimax="${range_altimax}; set xrange [$log_u0min:$log_u0max]"
+    range_flight_duration="${range_flight_duration}; set xrange [$log_u0min:$log_u0max]"
+    range_altitude_duration="${range_altitude_duration}; set xrange [$log_u0min:$log_u0max]"
     if [ $1 -le 1 ]
     then
-        range_flights="set xrange [0:$(($1 + 1))]; set yrange [0:$(($max_altimax + 1))]" #the range is adujsted, it starts from 0
+        range_flights="set xrange [0:$(decimalLogarithmApprox $max_flight_duration)]"
     fi
-    range_altimax="set xrange [0:$(($1 + 1))]; set yrange [0:$(($max_altimax + 1))]"
-    range_dureevol="set xrange [0:$(($1 + 1))]; set yrange [0:$(($max_dureevol + 1))]"
-    range_dureealtitude="set xrange [0:$(($1 + 1))]; set yrange [0:$(($max_dureealtitude + 1))]"
 fi
 
 # We create the graphs
-gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_flights; set title 'Ensemble des Un=f(n) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'Un'; set xlabel 'n'; set output 'graphs/syracuse_$1_$2_ALL.jpg'; plot $gnuplot_instructions_flights"
-gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_altimax; set title 'altimax = f(U0) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'altimax'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_altimax.jpg'; plot '$altimax_data' u 1:2 title '' $line_style lc rgb 'blue'"
-gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_dureevol; set title 'dureevol= f(U0) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'dureevol'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_dureevol.jpg'; plot '$dureevol_data' u 1:2 title '' $line_style lc rgb 'blue'"
-gnuplot -e "reset; set terminal jpeg size 1600, 900; $range_dureealtitude; set title 'dureealtitude = f(U0) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'dureealtitude'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_dureealtitude.jpg'; plot '$dureealtitude_data' u 1:2 title '' $line_style lc rgb 'blue'"
-
-
-# synthese-$1-$2.txt is created here
-echo -e "Altimax :\n\tMin : $min_altimax \n\tMax : $max_altimax \n\tAverage : $average_altimax\n" > "synthese-$1-$2.txt"
-echo -e "DureeVol :\n\tMin : $min_dureevol \n\tMax : $max_dureevol \n\tAverage : $average_dureevol\n" >> "synthese-$1-$2.txt"
-echo -e "DureeAltitude :\n\tMin : $min_dureealtitude \n\tMax : $max_dureealtitude\n\tAverage : $average_dureealtitude" >> "synthese-$1-$2.txt"
+gnuplot -e "reset; set terminal jpeg size 1600, 900 $range_flights; set title 'Ensemble des Un=f(n) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'Un'; set xlabel 'n'; set output 'graphs/syracuse_$1_$2_ALL.jpg'; plot $gnuplot_instructions_flights"
+gnuplot -e "reset; set terminal jpeg size 1600, 900 $range_altimax; set title 'altimax = f(U0) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'altimax'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_altimax.jpg'; plot '$altimax_data' u 1:2 title '' $line_style lc rgb 'blue'"
+gnuplot -e "reset; set terminal jpeg size 1600, 900 $range_flight_duration; set title 'dureevol= f(U0) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'dureevol'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_dureevol.jpg'; plot '$flight_duration_data' u 1:2 title '' $line_style lc rgb 'blue'"
+gnuplot -e "reset; set terminal jpeg size 1600, 900 $range_altitude_duration; set title 'dureealtitude = f(U0) pour U0 dans [${1}-${2}]' font ',20'; set ylabel 'dureealtitude'; set xlabel 'n'; set xlabel 'U0'; set output 'graphs/syracuse_$1_$2_dureealtitude.jpg'; plot '$altitude_duration_data' u 1:2 title '' $line_style lc rgb 'blue'"
 
 # The temporary files (and folder) are deleted
 rm -r "output_dir"
 rm "$altimax_data"
-rm "$dureevol_data"
-rm "$dureealtitude_data"
+rm "$flight_duration_data"
+rm "$altitude_duration_data"
