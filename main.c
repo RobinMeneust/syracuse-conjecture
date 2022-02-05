@@ -85,6 +85,7 @@ int main(int argc, char** argv)
     // We add a header and u0 to the output file
     fprintf(fileOutput,"n Un\n");
     fprintf(fileOutput, "0 %llu\n", u0);
+    max_altitude=u0;
     
     while(un != 1)
     {
