@@ -8,24 +8,24 @@
 #include <string.h>
 
 /**
- * \fn unsigned long stringToUnsignedLong(char * text)
- * \brief Convert a string into an unsigned long (integer). If there is a character that isn't a number then it returns an error
- * \param text The string that we want to convert to an unsigned long
- * \return The unsigned long converted from the text
+ * \fn unsigned long long stringToUnsignedLongLong(char * text)
+ * \brief Convert a string into an unsigned long long (integer). If there is a character that isn't a number then it returns an error
+ * \param text The string that we want to convert to an unsigned long long
+ * \return The unsigned long long converted from the text
  */
 
-unsigned long stringToUnsignedLong(char * text)
+unsigned long long stringToUnsignedLongLong(char * text)
 {
     int i=0;
-    unsigned long number=0;
-    unsigned long result=0;
+    unsigned long long number=0;
+    unsigned long long result=0;
 
     while(text[i]!='\0'){ 
         // We check that the parameter is a number by doing the difference between the parameter in ascii and 0 in ascii. If it's not a number we return -1
         number=text[i]-'0'; 
         if(number<0 || number>9)
             return -1;
-        result=(result*10L) + number;
+        result=(result*10LL) + number;
         i++;
     }
     return result;
@@ -42,12 +42,12 @@ unsigned long stringToUnsignedLong(char * text)
 int main(int argc, char** argv)
 {
     FILE* fileOutput = NULL;    // The output file whose name is given in parameters. It will contain data about the Syracuse sequence starting from the given u0
-    unsigned long max_altitude=0;    // The maximum value of Un
-    unsigned long index=0;     // The index n of each un. At the end it will be equal to the flight duration
-    unsigned long altitude_duration=0;       // The maximum number of successive values greater than u0
-    unsigned long altitude_duration_temp=0;      // The current number of successive values greater than u0
-    unsigned long un=0;      // The current altitude of the flight
-    unsigned long u0=0;      // The first value of the sequence
+    unsigned long long max_altitude=0;    // The maximum value of Un
+    unsigned long long index=0;     // The index n of each un. At the end it will be equal to the flight duration
+    unsigned long long altitude_duration=0;       // The maximum number of successive values greater than u0
+    unsigned long long altitude_duration_temp=0;      // The current number of successive values greater than u0
+    unsigned long long un=0;      // The current altitude of the flight
+    unsigned long long u0=0;      // The first value of the sequence
 
     // If there aren't exactly 3 parameters (including the name of this program), we return an error and we exit this program
     
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     }
 
     // We convert the first parameter into a number
-    u0=stringToUnsignedLong(argv[1]); 
+    u0=stringToUnsignedLongLong(argv[1]); 
 
     // We check if u0 is strictly positive since Syracuse's conjecture only works with it (except for some variants of this conjecture)
     if(u0 <= 0) 
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 
     // We add a header and u0 to the output file
     fprintf(fileOutput,"n Un\n");
-    fprintf(fileOutput, "0 %lu\n", u0);
+    fprintf(fileOutput, "0 %llu\n", u0);
     max_altitude=u0;
     
     while(un != 1)
@@ -106,11 +106,11 @@ int main(int argc, char** argv)
         }
 
         index++;
-        fprintf(fileOutput, "%lu %lu\n", index, un);
+        fprintf(fileOutput, "%llu %llu\n", index, un);
     }
 
     // We write at the end of the file the
-    fprintf(fileOutput, "altimax=%lu\ndureevol=%lu\ndureealtitude=%lu", max_altitude, index, altitude_duration);
+    fprintf(fileOutput, "altimax=%llu\ndureevol=%llu\ndureealtitude=%llu", max_altitude, index, altitude_duration);
 
     // We close the file and check if it was done correctly
     if(fclose(fileOutput) == EOF){
