@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# Function used to get the approximated value of the decimal logarithm of the given parameter in scientific notation (e.g 5e+8)
-decimalLogarithmApprox(){
-    echo "$((${1::1} + 1))e+$((${#1} - 1))"
-}
+#############################
+#   FUNCTIONS
+#############################
 
+# Function used to get the approximated value of the decimal logarithm of the given parameter in scientific notation (e.g 5.2e+8)
+decimalLogarithmApprox(){
+    echo "${1::1}e+$((${#1} - 1))"
+}
 
 displayHelp(){
     echo -e "NAME\n\tscript_syracuse.bash\n\nSYNOPSIS\n\tscript_syracuse.bash -h"
@@ -78,6 +81,38 @@ min(){
     fi
 }
 
+#Adapt the yrange if there is only one value in the file and thus in the created graph
+#$1 : fileInput $2 : max value
+adaptYRangeIfSingleValue(){
+    if [ $(uniq $1 | wc -l) -eq 1 ]
+    then
+        # yrange is written in scientific notation when it's a large number
+        if [ ${#2} -gt 8 ]
+        then
+            echo "; set yrange [0:$(decimalLogarithmApprox $(($2 * 4)))]"
+        else
+            echo "; set yrange [0:$(($2 + 1))]"
+        fi
+    else
+        echo ""
+    fi
+}
+#Adapt the xrange if there is only one value in the created graph
+#$1 : U0MIN $2 : U0MAX
+adaptXRangeIfSingleValue(){
+    if [ ${#1} -gt 8 ]
+    then
+        echo "; set xrange [$(decimalLogarithmApprox $(($1 / 4))):$(decimalLogarithmApprox $(($2 * 4)))]"
+    else
+        echo "; set xrange [$1:$(($2 + 1))]"
+    fi
+}
+
+
+#############################
+#   MAIN PART OF THIS SCRIPT
+#############################
+
 
 # We check if the executable compiled from main.c exists
 checkExecutableAvailability "syracuse"
@@ -115,7 +150,6 @@ do
         echo -e "ERROR: the program 'syracuse' couldn't be executed\n"
         exit 1
     fi
-
 done
 
 # We initialize the needed variables
@@ -124,7 +158,7 @@ altimax_data=`mktemp`
 flight_duration_data=`mktemp`
 altitude_duration_data=`mktemp`
 
-max_altimax=$(tail -n 3 output_dir/f${1}.dat | sed -n '1p' | cut -d'=' -f2) # temp value to test the current version, it will be the real max value when this project will be completed
+max_altimax=$(tail -n 3 output_dir/f${1}.dat | sed -n '1p' | cut -d'=' -f2)
 min_altimax=$max_altimax
 current_altimax=0
 average_altimax=0
@@ -142,8 +176,10 @@ average_altitude_duration=0
 gnuplot_instructions_flights=""
 
 # If there is only one point we don't draw a line, we only give one dot, we also have to specify the range (if we don't do this then it will be adjusted automatically and will display warnings)
-range_flights=""
-range=""
+
+range_flights="" # range for the graph of all flights
+range="" # range for the other graphs apart from the graph of all flights
+
 line_style_flights="with lines"
 line_style="with lines"
 
@@ -179,9 +215,9 @@ do
     average_altitude_duration=$(($average_altitude_duration + $current_altitude_duration))
 done
 
-average_altimax=$(($average_altimax / ($2 - $1 +1)))
-average_flight_duration=$(($average_flight_duration / ($2 - $1 +1)))
-average_altitude_duration=$(($average_altitude_duration / ($2 - $1 +1)))
+average_altimax=$(($average_altimax / ($2 - $1 + 1)))
+average_flight_duration=$(($average_flight_duration / ($2 - $1 + 1)))
+average_altitude_duration=$(($average_altitude_duration / ($2 - $1 + 1)))
 
 # summary/synthese-$1-$2.txt is created here
 echo -e "Altimax :\n\tMin : $min_altimax \n\tMax : $max_altimax \n\tMoyenne : $average_altimax\n" > "summary/synthese-$1-$2.txt"
@@ -189,42 +225,22 @@ echo -e "Dureevol :\n\tMin : $min_flight_duration \n\tMax : $max_flight_duration
 echo -e "Dureealtitude :\n\tMin : $min_altitude_duration \n\tMax : $max_altitude_duration\n\tMoyenne : $average_altitude_duration" >> "summary/synthese-$1-$2.txt"
 
 
-# We adjust the ranges if needed
-# Here we always adjust yrange because the maximum value is not too large even when u0 is huge
-range_flight_duration="; set yrange [0:$(($max_flight_duration + 1))]"
-range_altitude_duration="; set yrange [0:$(($max_altitude_duration + 1))]"
+# We adjust the y ranges if there is only one value
+range_altimax=$(adaptYRangeIfSingleValue "$altimax_data" $max_altimax)
+range_flight_duration=$(adaptYRangeIfSingleValue "$flight_duration_data" $max_flight_duration)
+range_altitude_duration=$(adaptYRangeIfSingleValue "$altitude_duration_data" $max_altitude_duration)
 
-#if the maximum value of altimax is too big then we write it in scientific notation
-
-if [ ${#max_altimax} -gt 8 ]
+# If there is only one point in xrange (e.g [2:2]) then we need to readjust it
+if [ $1 -eq $2 ]
 then
-    log_max_altimax=$(decimalLogarithmApprox $max_altimax)
-    range_altimax="; set yrange [0:$log_max_altimax]"
-    range_flights="; set yrange [0:$log_max_altimax]"
-else
-    range_altimax="; set yrange [0:$(($max_altimax + 1))]"
-    range_flights="; set yrange [0:$log_max_altimax]"
-fi
-
-# If U0MIN is too high the range of the x axis may be too large so we adujst it just in case it goes wrong
-# And if there is only one point in the ranges (e.g [2:2]) we also need to readjust the ranges
-
-log_u0min=$(decimalLogarithmApprox $(($1 / 2)))
-log_u0max=$(decimalLogarithmApprox $((2 * $2)))
-
-if [ ${#1} -gt 8 ]
-then
-    range_altimax="${range_altimax}; set xrange [$log_u0min:$log_u0max]"
-    range_flight_duration="${range_flight_duration}; set xrange [$log_u0min:$log_u0max]"
-    range_altitude_duration="${range_altitude_duration}; set xrange [$log_u0min:$log_u0max]"
-elif [ $1 -eq $2 ]
-then
-    range_altimax="${range_altimax}; set xrange [$log_u0min:$log_u0max]"
-    range_flight_duration="${range_flight_duration}; set xrange [$log_u0min:$log_u0max]"
-    range_altitude_duration="${range_altitude_duration}; set xrange [$log_u0min:$log_u0max]"
+    xrange="$(adaptXRangeIfSingleValue $1 $2)"
+    range_altimax="${range_altimax}$xrange"
+    range_flight_duration="${range_flight_duration}$xrange"
+    range_altitude_duration="${range_altitude_duration}$xrange"
+    range_altimax="${range_altimax}$xrange"
     if [ $1 -eq 1 ]
     then
-        range_flights="${range_flights}; set xrange [0:$(($max_flight_duration + 1))]"
+        range_flights="; set yrange [0:2]; set xrange [0:$(($max_flight_duration + 1))]"
     fi
 fi
 
@@ -236,6 +252,4 @@ gnuplot -e "reset; set terminal jpeg size 1600, 900 $range_altitude_duration; se
 
 # The temporary files (and folder) are deleted
 rm -r "output_dir"
-rm "$altimax_data"
-rm "$flight_duration_data"
-rm "$altitude_duration_data"
+rm "$altimax_data" "$flight_duration_data" "$altitude_duration_data"
