@@ -240,7 +240,7 @@ then
     range_altimax="${range_altimax}$xrange"
     if [ $1 -eq 1 ]
     then
-        range_flights="; set yrange [0:2]; set xrange [0:$(($max_flight_duration + 1))]"
+        range_flights="; set yrange [0:2]; set xrange [0:1]"
     fi
 fi
 
