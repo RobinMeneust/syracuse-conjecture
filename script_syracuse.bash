@@ -149,7 +149,7 @@ line_style="with lines"
 
 if [ $1 -eq $2 ]
 then
-    if [ $1 -le 1 ]
+    if [ $1 -eq 1 ]
     then
         line_style_flights="with linespoints pointtype 7 pointsize 3" #we are drawing a big point so that it can be seen easily
     fi
@@ -188,29 +188,41 @@ echo -e "Altimax :\n\tMin : $min_altimax \n\tMax : $max_altimax \n\tMoyenne : $a
 echo -e "Dureevol :\n\tMin : $min_flight_duration \n\tMax : $max_flight_duration \n\tMoyenne : $average_flight_duration\n" >> "summary/synthese-$1-$2.txt"
 echo -e "Dureealtitude :\n\tMin : $min_altitude_duration \n\tMax : $max_altitude_duration\n\tMoyenne : $average_altitude_duration" >> "summary/synthese-$1-$2.txt"
 
-# We adjust the range if needed
+
+# We adjust the ranges if needed
+# Here we always adjust yrange but it's written in scientific notation when it's a large number
+range_flight_duration="; set yrange [0:$(($max_flight_duration + 1))]"
+range_altitude_duration="; set yrange [0:$(($max_altitude_duration + 1))]"
 
 if [ ${#max_altimax} -gt 8 ]
 then
     log_max_altimax=$(decimalLogarithmApprox $max_altimax)
-
-    range_altimax="; set yrange [0:${log_max_altimax}]"
-    range_flight_duration="; set yrange [0:$(($max_flight_duration + 1))]"
-    range_altitude_duration="; set yrange [0:$(($max_altitude_duration + 1))]"
+    range_altimax="; set yrange [0:$log_max_altimax]"
+    range_flights="; set yrange [0:$log_max_altimax]"
+else
+    range_altimax="; set yrange [0:$(($max_altimax + 1))]"
     range_flights="; set yrange [0:$log_max_altimax]"
 fi
 
-if [ $1 -eq $2 ]
-then
-    log_u0min=$(decimalLogarithmApprox $(($1 / 2)))
-    log_u0max=$(decimalLogarithmApprox $((2 * $2)))
+# If U0MIN is too high the range of the x axis may be too large so we adujst it just in case
+# And if there is only one point in the ranges (e.g [2:2]) we also need to readjust the ranges
 
+log_u0min=$(decimalLogarithmApprox $(($1 / 2)))
+log_u0max=$(decimalLogarithmApprox $((2 * $2)))
+
+if [ ${#1} -gt 8 ]
+then
     range_altimax="${range_altimax}; set xrange [$log_u0min:$log_u0max]"
     range_flight_duration="${range_flight_duration}; set xrange [$log_u0min:$log_u0max]"
     range_altitude_duration="${range_altitude_duration}; set xrange [$log_u0min:$log_u0max]"
-    if [ $1 -le 1 ]
+elif [ $1 -eq $2 ]
+then
+    range_altimax="${range_altimax}; set xrange [$log_u0min:$log_u0max]"
+    range_flight_duration="${range_flight_duration}; set xrange [$log_u0min:$log_u0max]"
+    range_altitude_duration="${range_altitude_duration}; set xrange [$log_u0min:$log_u0max]"
+    if [ $1 -eq 1 ]
     then
-        range_flights="set xrange [0:$(decimalLogarithmApprox $max_flight_duration)]"
+        range_flights="${range_flights}; set xrange [0:$(($max_flight_duration + 1))]"
     fi
 fi
 
