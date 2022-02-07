@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 
     fileOutput = fopen(argv[2], "w");
 
-    // If the file can't be opened it also return an error and we exit the program
+    // If the file can't be opened it also returns an error and we exit the program
     if(!fileOutput){
         fprintf(stderr, "ERROR: the file can't be opened, it may be because of invalid characters\n");
         return 1;
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
         fprintf(fileOutput, "%llu %llu\n", index, un);
     }
 
-    // We write at the end of the file the
+    // We write at the end of the file: maximimum altitude, flight duration and altitude duration
     fprintf(fileOutput, "altimax=%llu\ndureevol=%llu\ndureealtitude=%llu", max_altitude, index, altitude_duration);
 
     // We close the file and check if it was done correctly
