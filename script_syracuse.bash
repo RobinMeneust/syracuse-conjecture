@@ -18,13 +18,13 @@ displayHelp(){
     echo -e "\tUMAX must be lesser than 1,000,000,000,000,000\n\n\t-h\n\t\tdisplay this help and exit.\n"
 }
 
-# Check if a directory is available. If it's a file the nwe have to delete it before and if it doesn't exist we create it
+# Check if a directory is available. If it's a file then we have to delete it before and if it doesn't exist we create it
 checkDirAvailability(){
     if ! [ -d "$1" ] 
     then
         if [ -e "$1" ]
         then
-            echo -e "ERROR: you have to delete the file '$1' before running this script\n"
+            echo "ERROR: you have to delete the file '$1' before running this script"
             exit 1
         else
             mkdir "$1"
@@ -43,14 +43,17 @@ checkExecutableAvailability(){
             if [ $? -eq 0 ]
             then
                 echo "syracuse was successfully created"
+            else
+                echo "ERROR: syracuse could not be created"
+                exit 1
             fi
         else
-            echo -e "ERROR: 'syracuse' is required. Please read README.txt and follow the instructions in the installation part\n"
+            echo "ERROR: 'syracuse' is required. Please read README.txt and follow the instructions in the installation part"
             exit 1
         fi
     elif ! [ -x "syracuse" ]
     then
-        echo -e "ERROR: 'syracuse' is not an executable. Please read README.txt and follow the instructions in the installation part\n"
+        echo "ERROR: 'syracuse' is not an executable. Please read README.txt and follow the instructions in the installation part"
         exit 1
     fi
 }
@@ -133,7 +136,7 @@ fi
 # We check if the output files and folders already exist
 if [ -d "summary/synthese-$1-$2.txt" ]
 then
-    echo -e "ERROR: you have to delete the folder 'summary/synthese-$1-$2.txt 'before running this script\n"
+    echo "ERROR: you have to delete the folder 'summary/synthese-$1-$2.txt 'before running this script"
     exit 1
 fi
 
@@ -176,10 +179,10 @@ average_altitude_duration=0
 gnuplot_instructions_flights=""
 
 # If there is only one point we don't draw a line, we only give one dot, we also have to specify the range (if we don't do this then it will be adjusted automatically and will display warnings)
+# To do so we use the following variables that may be modified. They will be used when giving instructions to gnuplot.
 
 range_flights="" # range for the graph of all flights
 range="" # range for the other graphs apart from the graph of all flights
-
 line_style_flights="with lines"
 line_style="with lines"
 
@@ -187,7 +190,7 @@ if [ $1 -eq $2 ]
 then
     if [ $1 -eq 1 ]
     then
-        line_style_flights="with linespoints pointtype 7 pointsize 3" #we are drawing a big point so that it can be seen easily
+        line_style_flights="with linespoints pointtype 7 pointsize 3" # We are drawing a big point so that it can be seen easily
     fi
     line_style="with linespoints pointtype 7 pointsize 3"    
 fi
