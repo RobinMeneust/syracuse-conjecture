@@ -13,7 +13,8 @@ INSTALLATION
 COMPILATION
 
 	Tapez dans la console : "gcc main.c -o syracuse"
-	Vous pouvez aussi lancer le script script_syracuse.bash (avec ou sans options), il vous demandera si vous voulez créer l'exécutable syracuse ou non
+	Vous pouvez aussi lancer le script script_syracuse.bash (avec ou sans options), il vous demandera si vous voulez créer l'exécutable syracuse ou non.
+	Mais veillez alors à bien donner les droits d'exécution, comme expliqué ci-dessous.
 
 /////////////////////
 EXECUTION

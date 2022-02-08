@@ -13,7 +13,8 @@ INSTALLATION
 COMPILATION
 
 	Type in the console: "gcc main.c -o syracuse"
-	You can also run the script script_syracuse.bash (with options or not), it will ask if you want to create the executable named syracuse
+	You can also run the script script_syracuse.bash (with options or not), it will ask if you want to create the executable named syracuse.
+	But in that case, you should add execution rights to this script, as explained below
 
 /////////////////////
 EXECUTION
