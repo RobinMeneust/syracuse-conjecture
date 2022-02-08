@@ -11,7 +11,7 @@
  * \fn unsigned long long stringToUnsignedLongLong(char * text)
  * \brief Convert a string into an unsigned long long (integer). If there is a character that isn't a number then it returns an error
  * \param text The string that we want to convert to an unsigned long long
- * \return The unsigned long long converted from the text
+ * \return The unsigned long long converted from the text. It returns 0 if there was an error
  */
 
 unsigned long long stringToUnsignedLongLong(char * text)
@@ -20,12 +20,15 @@ unsigned long long stringToUnsignedLongLong(char * text)
     unsigned long long number=0;
     unsigned long long result=0;
 
+    // We check that the parameter is a number by doing the difference between each of its characters and '0' in ASCII. If it's not a number we return -1
+    // We also need to check if there is an overflow:
+    // If the 10 times the result is greater than the maximum value a unsigned long long can contain (-1LLU)
+    // If 10*result is equal to this maximum we can 
     while(text[i]!='\0'){ 
-        // We check that the parameter is a number by doing the difference between the parameter in ascii and 0 in ascii. If it's not a number we return -1
-        number=text[i]-'0'; 
-        if(number<0 || number>9)
-            return -1;
-        result=(result*10LL) + number;
+        number=text[i]-'0';
+        if(number<0 || number>9 || result>((-1LLU)/10) || (result==((-1LLU)/10) && number>(-1LLU)))
+            return 0;
+        result=(result*10ULL) + number;
         i++;
     }
     return result;
@@ -36,12 +39,12 @@ unsigned long long stringToUnsignedLongLong(char * text)
  * \brief Main function of this Syracuse project
  * \param argc An integer that contains the number of arguments given
  * \param argv An array containing the arguments given (it's an array of arrays of characters)
- * \return 0 if the function runs and exits correctly
+ * \return 0 if the function runs and exits correctly. It returns 1 if there was an error
  */
 
 int main(int argc, char** argv)
 {
-    FILE* fileOutput = NULL;    // The output file whose name is given in parameters. It will contain data about the Syracuse sequence starting from the given u0
+    FILE* fileOutput = NULL;    // It will be use to write in the output file whose name is given in parameters, that will contain data about the Syracuse sequence starting from the given u0
     unsigned long long max_altitude=0;    // The maximum value of Un
     unsigned long long index=0;     // The index n of each un. At the end it will be equal to the flight duration
     unsigned long long altitude_duration=0;       // The maximum number of successive values greater than u0
@@ -50,12 +53,12 @@ int main(int argc, char** argv)
     unsigned long long u0=0;      // The first value of the sequence
 
     // If there aren't exactly 3 parameters (including the name of this program), we return an error and we exit this program
-    
     if(argc != 3){ 
         fprintf(stderr, "ERROR: bad parameters. 2 parameters are expected\n");
         return 1;
     }
-    // If the name of the output file provided by the second parameter is too long. If that's the case then an error is returned and we exit the program
+
+    // If the name of the output file provided by the second parameter is too long, an error is returned and we exit the program
     if(strlen(argv[2]) > FILENAME_MAX) 
     {
         fprintf(stderr, "ERROR: the given file name is too long\n");
