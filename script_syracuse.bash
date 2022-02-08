@@ -58,7 +58,7 @@ checkExecutableAvailability(){
     fi
 }
 
-# Get a value in the given file, return it save it in a file generated from the first parameter 'u0'
+# Get a value in the given file (named after u0), return it and save it in a file whose name is given in the third parameter
 # $1: u0     $2: line starting from the last three lines    $3: fileOutput
 getDataFromDatFiles(){
     local current_value="$(tail -n 3 output_dir/f${1}.dat | sed -n "${2}p" | cut -d'=' -f2)"
@@ -84,7 +84,7 @@ min(){
     fi
 }
 
-#Adapt the yrange if there is only one value in the file and thus in the created graph
+#Adapt the yrange if there is only one y value in the file and thus in the created graph
 #$1 : fileInput $2 : max value
 adaptYRangeIfSingleValue(){
     if [ $(uniq $1 | wc -l) -eq 1 ]
@@ -100,6 +100,7 @@ adaptYRangeIfSingleValue(){
         echo ""
     fi
 }
+
 #Adapt the xrange if there is only one value in the created graph
 #$1 : U0MIN $2 : U0MAX
 adaptXRangeIfSingleValue(){
@@ -120,7 +121,7 @@ adaptXRangeIfSingleValue(){
 # We check if the executable compiled from main.c exists
 checkExecutableAvailability "syracuse"
 
-# We check if the two firsts parameters are integers, if the first one is greater or equal to the second one and if they are lesser than 1e16
+# We check if the two firsts parameters are integers, if the first one is greater or equal to the second one and if they are lesser than 1e15
 if [ $# -ne 2 -o -n "${1//[0-9]/}" -o -n "${2//[0-9]/}" -o "${1:0:1}" = "0" -o "${2:0:1}" = "0" -o ${#1} -gt 15 -o ${#2} -gt 15 ]
 then
     # Display help

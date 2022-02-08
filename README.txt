@@ -12,7 +12,7 @@ INSTALLATION
 /////////////////////
 COMPILATION
 
-	Type in the console: "main.c -o syracuse"
+	Type in the console: "gcc main.c -o syracuse"
 	You can also run the script script_syracuse.bash (with options or not), it will ask if you want to create the executable named syracuse
 
 /////////////////////
@@ -43,7 +43,7 @@ SYNOPSIS
 
 DESCRIPTION
 	Generates graphs in the jpeg format corresponding to maximum altitude, flight duration and altitude duration.
-	It also generates a resume named "synthese-min-max.txt" that provide minimum, maximum and average values for each one
+	It also generates a resume named "synthese-min-max.txt" that provides minimum, maximum and average values for each one
 	UMIN and UMAX are strictly positive integers and UMIN is lesser than UMAX
 	UMAX must be lesser than 1,000,000,000,000,000
 
