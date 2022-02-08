@@ -23,10 +23,10 @@ unsigned long long stringToUnsignedLongLong(char * text)
     // We check that the parameter is a number by doing the difference between each of its characters and '0' in ASCII. If it's not a number we return -1
     // We also need to check if there is an overflow:
     // If the 10 times the result is greater than the maximum value a unsigned long long can contain (-1LLU)
-    // If 10*result is equal to this maximum we can 
+    // If 10*result is equal to this maximum we will have an overflow if the number added is greater than the unit of this maximum
     while(text[i]!='\0'){ 
         number=text[i]-'0';
-        if(number<0 || number>9 || result>((-1LLU)/10) || (result==((-1LLU)/10) && number>(-1LLU)))
+        if(number<0 || number>9 || result>((-1LLU)/10) || (result==((-1LLU)/10) && number>(-1LLU)%10))
             return 0;
         result=(result*10ULL) + number;
         i++;
